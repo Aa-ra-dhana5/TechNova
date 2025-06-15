@@ -7,13 +7,12 @@ import {
 import Home from "./pages/Home";
 import CategoryPage from "./componants/CategoryPage";
 import Login from "./pages/Login";
-import Signup from "./pages/Signup";
+import Signup from "./pages/SignUp";
 import Header from "./layout/Header";
 import Footer from "./layout/Footer";
 import ProductDetail from "./componants/ProductDetail ";
 import Cart from "./pages/Cart";
 import { PrivateRoute } from "./route/PrivateRoute";
-// import Search from "./pages/Search";
 
 export default function App() {
   return (
