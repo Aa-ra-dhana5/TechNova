@@ -1,0 +1,165 @@
+import jwt from "jsonwebtoken";
+import User from "../model/User.js";
+import dotenv from "dotenv";
+import crypto from "crypto";
+import { sendVerificationEmail } from "../utils/sendVerificationEmail.js";
+dotenv.config();
+
+const genrateToken = (userId) => {
+  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
+};
+
+export const signUp = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(400).json({ message: "User already Exists" });
+    }
+
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      verificationToken,
+      verificationTokenExpires: Date.now() + 60 * 60 * 1000,
+      cart: [],
+    });
+
+    await sendVerificationEmail(user.email, verificationToken);
+
+    const token = genrateToken(user._id);
+    res.status(201).json({
+      success: true,
+      token,
+      user: { id: user._id, name: user.name, email: user.email },
+      message: "Signup Successful. Plwase verify your email.",
+    });
+  } catch (error) {
+    console.error("Signup Error:", error);
+
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user || !(await user.comparePassword(password)))
+      return res.status(400).json({ message: "Invalide email or Password" });
+
+    if (!user.isVerified) {
+      return res
+        .status(401)
+        .json({ message: "Please verify your Email first" });
+    }
+    const token = genrateToken(user._id);
+
+    res.status(201).json({
+      success: true,
+      token,
+      user: { id: user._id, name: user.name, email: user.email },
+    });
+  } catch (error) {
+    res.status(500).json({ message: "server Eroor", error: error.message });
+  }
+};
+
+export const verify = async (req, res) => {
+  try {
+    const user = await User.findOne({
+      verificationToken: req.params.token,
+      verificationTokenExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "invalid or Expired Token" });
+    }
+
+    user.isVerified = true;
+    user.verificationToken = undefined;
+
+    await user.save();
+
+    res.send(`<!DOCTYPE html>
+<html lang="en" style="margin:0;padding:0;font-family:sans-serif;">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Email Verified</title>
+  </head>
+  <body style="margin:0;padding:0;background-color:#f9fafb;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;background-color:#f9fafb;">
+      <tr>
+        <td align="center">
+          <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background-color:#ffffff;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,0.05);overflow:hidden;">
+            <tr>
+              <td style="padding:40px 30px;text-align:center;">
+                <h2 style="color:#10b981;font-size:24px;margin-bottom:15px;">✅ Email Verified Successfully!</h2>
+                <p style="color:#333;font-size:16px;margin:0 0 25px;">
+                  Your email has been verified. You can now log in to your account and start using our services.
+                </p>
+                <a href="http://localhost:5173/login" target="_blank" style="display:inline-block;background-color:#4F46E5;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:6px;font-size:16px;margin-top:10px;">
+                  Go to Login
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td style="background-color:#f3f4f6;padding:20px;text-align:center;font-size:13px;color:#999;">
+                If you did not request this, please ignore this message.<br />
+                &copy; ${new Date().getFullYear()} E-Commerce. All rights reserved.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+`);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Verification failed", error: error.message });
+  }
+};
+export const cartUpdate = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const { cart } = req.body;
+
+    // Replace the whole cart array in DB
+    await User.updateOne({ _id: userId }, { $set: { cart } });
+
+    res.status(200).json({ message: "Cart updated", cart });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
+export const getCart = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).populate(
+      "cart.productId"
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ cart: user.cart });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const getUsername = async (req, res) => {
+  const user = await User.findById(req.params.id).select("name");
+  if (!user) return res.status(404).send("User not found");
+  res.json(user);
+};
