@@ -8,7 +8,12 @@ import { getUsername } from "./controller/authController.js";
 connectDB();
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://technova-web.onrender.com", // frontend URL
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.use("/api/auth", authRoute);
