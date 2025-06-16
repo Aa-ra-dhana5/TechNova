@@ -34,9 +34,9 @@ app.use((req, res, next) => {
 });
 
 // ✅ Handle preflight requests explicitly
-app.options("*", (req, res) => {
-  res.sendStatus(200);
-});
+// app.options("*", (req, res) => {
+//   res.sendStatus(200);
+// });
 
 app.use(express.json());
 app.use(cookieParser());
