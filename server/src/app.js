@@ -19,6 +19,8 @@ app.use(
 
 app.use("/api/auth", authRoute);
 app.use("/api/products", productRoutes);
+app.use(express.static("public"));
+
 app.use("/product-images", express.static("public/product-images"));
 app.use("/mobile", express.static("public/mobile"));
 app.use("/smartwatch", express.static("public/smartwatch"));
