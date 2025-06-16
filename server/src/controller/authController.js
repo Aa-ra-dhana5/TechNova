@@ -51,13 +51,30 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user || !(await user.comparePassword(password)))
-      return res.status(400).json({ message: "Invalid email or password" });
+
+    if (!user) {
+      console.log("❌ No user found with email:", email);
+      return res.status(400).json({
+        message: "Invalid email or password",
+        debug: { userFound: false, email }
+      });
+    }
+
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      console.log("❌ Password mismatch for:", email);
+      return res.status(400).json({
+        message: "Invalid email or password",
+        debug: { userFound: true, passwordMatch: false }
+      });
+    }
 
     if (!user.isVerified) {
-      return res
-        .status(401)
-        .json({ message: "Please verify your email first" });
+      console.log("⚠️ Email not verified for:", email);
+      return res.status(401).json({
+        message: "Please verify your email first",
+        debug: { emailVerified: false }
+      });
     }
 
     const token = genrateToken(user._id);
@@ -65,20 +82,23 @@ export const login = async (req, res) => {
     // ✅ Set token as HttpOnly cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // ✅ only true in production
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // ✅ safer on localhost
-      maxAge: 24 * 60 * 60 * 1000,
+      secure: process.env.NODE_ENV === "production", // true only in production
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
-    // ✅ Don't return token in JSON — just user info
+    console.log("✅ Login successful:", email);
+
     res.status(200).json({
       success: true,
       user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (error) {
+    console.error("💥 Server error during login:", error.message);
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
+
 
 export const verify = async (req, res) => {
   try {
