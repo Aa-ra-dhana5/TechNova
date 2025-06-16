@@ -98,7 +98,7 @@ export default function ProductDetail() {
     const fetchSuggestions = async () => {
       if (!product?.category) return;
       const res = await fetch(
-        `http://localhost:5000/api/products?category=${product.category}`
+        `${import.meta.env.VITE_PRODUCT_API_URL}/products?category=${product.category}`
       );
       const data = await res.json();
       setRelatedProducts(data.filter((p) => p._id !== productId).slice(0, 6));
