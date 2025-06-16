@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import dotenv from  'dotenv';
 
 const SignUp = () => {
   const [name, setName] = useState("");
@@ -19,7 +20,7 @@ const SignUp = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/auth/signUp", {
+      const response = await fetch(`${import.meta.env.VITE_AUTH_API_URL}/auth/signUp`, {
         method: "POST",
         body: JSON.stringify({ name, email, password }),
         headers: { "Content-Type": "application/json" },
