@@ -1,21 +1,21 @@
-import jwt from 'jsonwebtoken';
+// middleware/authJWT.js
+import jwt from "jsonwebtoken";
 
-const authJWT = (req, res, next) => { 
-         
-     const token =req.header('Authentication');
+const authJWT = (req, res, next) => {
+  const token = req.cookies.token;
 
-     if(!token){
-        return res.status(401).json({message: "Unauthorised"})
-     }
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized: No token provided" });
+  }
 
-     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if(err){
-            return res.status(403).json({message: "forbidden"});
-        }
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: "Forbidden: Invalid token" });
+    }
 
-        res.user =user;
-        next();
-     })
-}
+    req.user = decoded.userId; // Attach user ID to request
+    next();
+  });
+};
 
 export default authJWT;

@@ -68,8 +68,8 @@ export const login = async (req, res) => {
     // ✅ Set token as HttpOnly cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true, // true for HTTPS (required by Render)
-      sameSite: "None", // allow cross-site cookies
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
@@ -142,33 +142,25 @@ export const verify = async (req, res) => {
       .json({ message: "Verification failed", error: error.message });
   }
 };
-export const cartUpdate = async (req, res) => {
-  try {
-    const userId = req.params.userId;
-    const { cart } = req.body;
-
-    // Replace the whole cart array in DB
-    await User.updateOne({ _id: userId }, { $set: { cart } });
-
-    res.status(200).json({ message: "Cart updated", cart });
-  } catch (error) {
-    res.status(500).json({ message: "Server Error", error: error.message });
-  }
-};
-
 export const getCart = async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId).populate(
-      "cart.productId"
-    );
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    const user = await User.findById(req.user).populate("cart.productId");
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     res.status(200).json({ cart: user.cart });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+export const cartUpdate = async (req, res) => {
+  try {
+    const { cart } = req.body;
+
+    await User.updateOne({ _id: req.user }, { $set: { cart } });
+
+    res.status(200).json({ message: "Cart updated", cart });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 

@@ -1,13 +1,16 @@
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_AUTH_API_URL;
+axios.defaults.withCredentials = true;
 
+
+// 🔐 Login using HttpOnly cookies
 export const loginUser = async (email, password) => {
   try {
     const response = await axios.post(
       `${API_URL}/auth/login`,
       { email, password },
-      { withCredentials: true } 
+      { withCredentials: true }
     );
     return response.data;
   } catch (error) {
@@ -15,7 +18,7 @@ export const loginUser = async (email, password) => {
   }
 };
 
-
+// 📝 Register (cookies not needed here)
 export const registerUser = async (name, email, password) => {
   try {
     const response = await axios.post(`${API_URL}/auth/signUp`, {
@@ -29,31 +32,30 @@ export const registerUser = async (name, email, password) => {
   }
 };
 
-export const getUserCart = async (userId, token) => {
-  const res = await axios.get(`http://localhost:5000/api/auth/cart/${userId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+// 🛒 Get user cart using cookie-based auth
+export const getUserCart = async () => {
+  const res = await axios.get(`${API_URL}/auth/cart`, {
+    withCredentials: true,
   });
   return res.data.cart;
 };
 
-export const updateUserCart = async (userId, cart, token) => {
+// 🛒 Update cart
+export const updateUserCart = async (cart) => {
   const res = await axios.post(
-    `http://localhost:5000/api/auth/cart/${userId}`,
+    `${API_URL}/auth/cart`,
     { cart },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
+    { withCredentials: true }
   );
   return res.data.cart;
 };
 
+// 👤 Fetch user details (if protected, include credentials)
 export const fetchUserById = async (userId) => {
   try {
-    const res = await axios.get(`http://localhost:5000/api/users/${userId}`);
+    const res = await axios.get(`${API_URL}/users/${userId}`, {
+      withCredentials: true, // ✅ if protected
+    });
     return res.data;
   } catch (error) {
     console.error("Error fetching user:", error);
