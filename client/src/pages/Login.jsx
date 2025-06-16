@@ -17,7 +17,7 @@ const Login = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_AUTH_API_URL}/login`, // ✅ remove /auth again
+        `${import.meta.env.VITE_AUTH_API_URL}/auth/login`, // ✅ remove /auth again
         {
           method: "POST",
           credentials: "include", // ✅ needed for HttpOnly cookies
