@@ -9,8 +9,7 @@ import { getUsername } from "./controller/authController.js";
 connectDB();
 
 const app = express();
-app.use(express.json());
-app.use(cookieParser()); // ✅ Needed to read cookies
+// ✅ Needed to read cookies
 
 // ✅ CORS setup for cross-origin cookies
 app.use(
@@ -19,6 +18,9 @@ app.use(
     credentials: true, // ✅ allows sending/receiving cookies
   })
 );
+
+app.use(express.json());
+app.use(cookieParser());
 
 // ✅ Routes
 app.use("/api/auth", authRoute);
