@@ -46,9 +46,6 @@ export const signUp = async (req, res) => {
   }
 };
 
-import genrateToken from "../utils/genrateToken.js"; // make sure this is imported
-import User from "../models/User.js"; // assuming your User model is here
-
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;

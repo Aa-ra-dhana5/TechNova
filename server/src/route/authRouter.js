@@ -6,7 +6,7 @@ import {
   cartUpdate,
 } from "../controller/authController.js";
 import express from "express";
-import authJWT from "../middleware/authJWT.js"; // make sure path is correct
+import authJWT from "../middleware/authMiddleware.js"; // make sure path is correct
 
 const router = express.Router();
 
