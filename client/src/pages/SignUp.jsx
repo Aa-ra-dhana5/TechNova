@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import dotenv from  'dotenv';
 
 const SignUp = () => {
   const [name, setName] = useState("");
@@ -20,11 +19,14 @@ const SignUp = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_AUTH_API_URL}/auth/signUp`, {
-        method: "POST",
-        body: JSON.stringify({ name, email, password }),
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_AUTH_API_URL}/auth/signUp`,
+        {
+          method: "POST",
+          body: JSON.stringify({ name, email, password }),
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
       const data = await response.json();
       setLoading(false);
@@ -130,12 +132,12 @@ const SignUp = () => {
 
         <p className="text-center mt-6 text-indigo-900">
           Already have an account?{" "}
-          <a
-            href="/login"
+          <Link
+            to="/login"
             className="text-indigo-700 font-semibold hover:underline"
           >
             Login
-          </a>
+          </Link>
         </p>
       </motion.div>
 

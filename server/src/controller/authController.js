@@ -107,7 +107,7 @@ export const verify = async (req, res) => {
                 <a href="${
                   process.env.NODE_AUTH_API_URL
                 }/login" target="_blank" style="display:inline-block;background-color:#4F46E5;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:6px;font-size:16px;margin-top:10px;">
-                  Go to Login
+                
                 </a>
               </td>
             </tr>
