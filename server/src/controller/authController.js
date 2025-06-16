@@ -105,7 +105,7 @@ export const verify = async (req, res) => {
                   Your email has been verified. You can now log in to your account and start using our services.
                 </p>
                 <a href="${
-                  import.meta.env.NODE_AUTH_API_URL
+                  process.env.NODE_AUTH_API_URL
                 }/login" target="_blank" style="display:inline-block;background-color:#4F46E5;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:6px;font-size:16px;margin-top:10px;">
                   Go to Login
                 </a>
