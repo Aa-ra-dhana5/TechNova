@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "../componants/AuthContext"; 
+import { useAuth } from "../componants/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -9,33 +9,35 @@ const Login = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const { login } = useAuth(); 
+  const { login } = useAuth();
 
   const handleLogin = async (e) => {
-  e.preventDefault();
-  setError(null);
+    e.preventDefault();
+    setError(null);
 
-  try {
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-      headers: { "Content-Type": "application/json" },
-    });
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_AUTH_API_URL}/auth/login`,
+        {
+          method: "POST",
+          body: JSON.stringify({ email, password }),
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (response.ok && data.success && data.token) {
-      localStorage.setItem("token", data.token);
-      await login(data.token); // ✅ Pass token here
-      navigate("/home");
-    } else {
-      setError("Invalid email or password");
+      if (response.ok && data.success && data.token) {
+        localStorage.setItem("token", data.token);
+        await login(data.token); // ✅ Pass token here
+        navigate("/home");
+      } else {
+        setError("Invalid email or password");
+      }
+    } catch (error) {
+      setError("Something went wrong, please try again!");
     }
-  } catch (error) {
-    setError("Something went wrong, please try again!");
-  }
-};
-
+  };
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-300 via-indigo-200 to-cyan-200 px-6">
