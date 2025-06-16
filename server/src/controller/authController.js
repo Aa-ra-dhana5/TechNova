@@ -46,28 +46,40 @@ export const signUp = async (req, res) => {
   }
 };
 
+import genrateToken from "../utils/genrateToken.js"; // make sure this is imported
+import User from "../models/User.js"; // assuming your User model is here
+
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
     if (!user || !(await user.comparePassword(password)))
-      return res.status(400).json({ message: "Invalide email or Password" });
+      return res.status(400).json({ message: "Invalid email or password" });
 
     if (!user.isVerified) {
       return res
         .status(401)
-        .json({ message: "Please verify your Email first" });
+        .json({ message: "Please verify your email first" });
     }
+
     const token = genrateToken(user._id);
 
-    res.status(201).json({
+    // ✅ Set token as HttpOnly cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true, // true for HTTPS (required by Render)
+      sameSite: "None", // allow cross-site cookies
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
+    // ✅ Don't return token in JSON — just user info
+    res.status(200).json({
       success: true,
-      token,
       user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (error) {
-    res.status(500).json({ message: "server Eroor", error: error.message });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
