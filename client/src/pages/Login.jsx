@@ -20,6 +20,7 @@ const Login = () => {
         `${import.meta.env.VITE_AUTH_API_URL}/auth/login`,
         {
           method: "POST",
+          credentials: "include",
           body: JSON.stringify({ email, password }),
           headers: { "Content-Type": "application/json" },
         }

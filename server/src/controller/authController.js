@@ -65,9 +65,9 @@ export const login = async (req, res) => {
     // ✅ Set token as HttpOnly cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true, // true for HTTPS (required by Render)
-      sameSite: "None", // allow cross-site cookies
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      secure: process.env.NODE_ENV === "production", // ✅ only true in production
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // ✅ safer on localhost
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     // ✅ Don't return token in JSON — just user info
