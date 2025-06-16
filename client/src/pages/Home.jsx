@@ -5,14 +5,16 @@ import { motion } from "framer-motion";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 
 export default function Home() {
+  axios.defaults.withCredentials = true;
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const API_URL = "http://localhost:5000/api/products";
+  const API_URL = `${import.meta.env.VITE_PRODUCT_API_URL}/products`;
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const { data } = await axios.get(API_URL);
+        const { data } = await axios.get(API_URL, { withCredentials: true });
         setProducts(data);
       } catch (err) {
         console.error("Failed to fetch products", err);

@@ -64,15 +64,5 @@ router.get("/new-arrivals", async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-// /routes/products.js
-router.get("/", async (req, res) => {
-  try {
-    const products = await Product.find();
-    res.json(products);
-  } catch (err) {
-    res.status(500).json({ message: "Error fetching products" });
-  }
-});
-
 
 export default router;
