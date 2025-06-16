@@ -17,25 +17,28 @@ const Login = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_AUTH_API_URL}/auth/login`,
+        `${import.meta.env.VITE_AUTH_API_URL}/login`, // ✅ remove /auth again
         {
           method: "POST",
-          credentials: "include",
+          credentials: "include", // ✅ needed for HttpOnly cookies
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({ email, password }),
-          headers: { "Content-Type": "application/json" },
         }
       );
 
       const data = await response.json();
 
-      if (response.ok && data.success && data.token) {
-        localStorage.setItem("token", data.token);
-        await login(data.token); // ✅ Pass token here
+      // ✅ Updated check: no need to check data.token
+      if (response.ok && data.success) {
+        // 🍪 HttpOnly cookie is already set by backend, no need for localStorage
         navigate("/home");
       } else {
-        setError("Invalid email or password");
+        setError(data.message || "Invalid email or password");
       }
     } catch (error) {
+      console.error("Login error:", error);
       setError("Something went wrong, please try again!");
     }
   };
