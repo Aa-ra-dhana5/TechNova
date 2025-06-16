@@ -103,10 +103,15 @@ export default function Cart() {
           className="flex flex-col md:flex-row justify-between items-center gap-4 p-4 border-b"
         >
           <img
-            src={item.image_url}
+            src={
+              item.image_url?.startsWith("http")
+                ? item.image_url
+                : `${import.meta.env.VITE_API_URL}/${item.image_url}`
+            }
             alt={item.name}
             className="w-24 h-24 object-contain"
           />
+
           <div className="flex-1">
             <h3 className="text-lg font-semibold">{item.name}</h3>
             <p className="text-green-600 font-medium">

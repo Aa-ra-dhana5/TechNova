@@ -96,7 +96,11 @@ export default function Home() {
       key={product._id}
     >
       <img
-        src={product.image_url}
+        src={
+          product.image_url?.startsWith("http")
+            ? product.image_url
+            : `${import.meta.env.VITE_API_URL}/${product.image_url}`
+        }
         alt={product.name}
         loading="lazy"
         className="w-full h-52 object-contain mb-4 rounded-lg"
@@ -104,7 +108,7 @@ export default function Home() {
       <h3 className="font-semibold text-gray-800 text-lg mb-2 line-clamp-2">
         {product.name}
       </h3>
-     
+
       <div className="flex justify-between items-center mt-auto pt-3">
         <div className="text-cyan-700 font-extrabold text-xl">
           ₹{product.offer_price?.toLocaleString()}
@@ -219,7 +223,11 @@ export default function Home() {
               className="min-w-[250px] bg-white rounded-xl shadow-lg p-5 flex-shrink-0 border border-gray-200"
             >
               <img
-                src={product.image_url}
+                src={
+                  product.image_url?.startsWith("http")
+                    ? product.image_url
+                    : `${import.meta.env.VITE_API_URL}/${product.image_url}`
+                }
                 alt={product.name}
                 loading="lazy"
                 className="w-full h-40 object-contain mb-3"

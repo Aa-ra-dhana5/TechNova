@@ -67,7 +67,7 @@ export default function ProductCard({ product }) {
         className="block group"
       >
         <img
-          src={product.image_url}
+          src={`${import.meta.env.VITE_API_URL}/${product.image_url}`}
           alt={product.name}
           className="w-full h-48 object-contain mb-3 group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
