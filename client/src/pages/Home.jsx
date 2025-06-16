@@ -7,17 +7,16 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const API_URL = "http://localhost:5000/api/products";
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get(API_URL);
-        setProducts(res.data);
-        setLoading(false);
+        const { data } = await axios.get(API_URL);
+        setProducts(data);
       } catch (err) {
         console.error("Failed to fetch products", err);
+      } finally {
         setLoading(false);
       }
     };
@@ -25,28 +24,31 @@ export default function Home() {
   }, []);
 
   const getTopRated = () =>
-    [...products].sort((a, b) => b.rating - a.rating).slice(0, 8);
+    [...products]
+      .filter((p) => p.rating)
+      .sort((a, b) => b.rating - a.rating)
+      .slice(0, 8);
 
   const getNewArrivals = () => {
-    const categoryMap = {};
+    const map = {};
     products.forEach((p) => {
-      if (!categoryMap[p.category]) categoryMap[p.category] = [];
-      categoryMap[p.category].push(p);
+      if (!map[p.category]) map[p.category] = [];
+      map[p.category].push(p);
     });
 
     const arrivals = [];
-    Object.values(categoryMap).forEach((arr) => {
-      const latestTwo = arr
+    Object.values(map).forEach((group) => {
+      const recent = [...group]
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         .slice(0, 2);
-      arrivals.push(...latestTwo);
+      arrivals.push(...recent);
     });
 
     return arrivals;
   };
 
   const getBestReviewed = () => {
-    const famousBrands = [
+    const popularBrands = [
       "samsung",
       "apple",
       "lg",
@@ -58,27 +60,27 @@ export default function Home() {
       "realme",
       "redmi",
     ];
-    const grouped = {};
 
+    const grouped = {};
     products.forEach((p) => {
       const cat = p.category.toLowerCase();
       if (!grouped[cat]) grouped[cat] = [];
 
-      const isFamous = famousBrands.some((brand) =>
+      const isPopular = popularBrands.some((brand) =>
         p.name.toLowerCase().includes(brand)
       );
 
-      if (isFamous || p.rating >= 4.2) {
+      if (isPopular || p.rating >= 4.2) {
         grouped[cat].push(p);
       }
     });
 
     const best = [];
     Object.values(grouped).forEach((arr) => {
-      const topRated = arr
+      const top = [...arr]
         .sort((a, b) => b.offer_price - a.offer_price)
         .slice(0, 2);
-      best.push(...topRated);
+      best.push(...top);
     });
 
     return best.slice(0, 12);
@@ -96,14 +98,13 @@ export default function Home() {
       <img
         src={product.image_url}
         alt={product.name}
+        loading="lazy"
         className="w-full h-52 object-contain mb-4 rounded-lg"
       />
       <h3 className="font-semibold text-gray-800 text-lg mb-2 line-clamp-2">
         {product.name}
       </h3>
-      <p className="text-sm text-gray-600 line-clamp-2 mb-3">
-        {truncate(product.description?.join(" ") || "")}
-      </p>
+     
       <div className="flex justify-between items-center mt-auto pt-3">
         <div className="text-cyan-700 font-extrabold text-xl">
           ₹{product.offer_price?.toLocaleString()}
@@ -179,7 +180,7 @@ export default function Home() {
         </Carousel>
       </section>
 
-      {/* Sections */}
+      {/* Product Sections */}
       {[
         { title: "🌟 Top Rated Products", products: getTopRated() },
         { title: "🆕 New Arrivals", products: getNewArrivals() },
@@ -202,6 +203,7 @@ export default function Home() {
         </section>
       ))}
 
+      {/* Best Reviewed */}
       <section className="py-20 bg-gradient-to-r from-blue-100 to-cyan-100 overflow-hidden">
         <h2 className="text-4xl font-extrabold text-center mb-12 text-cyan-800">
           🔥 Best Reviewed Products
@@ -219,6 +221,7 @@ export default function Home() {
               <img
                 src={product.image_url}
                 alt={product.name}
+                loading="lazy"
                 className="w-full h-40 object-contain mb-3"
               />
               <h4 className="text-lg font-semibold text-gray-800">
