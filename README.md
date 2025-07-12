@@ -108,16 +108,7 @@ Made by [Aaradhana Parmar] 💻
 📄 License
 Licensed under the MIT License.
 
----
 
-### 🔧 Next Steps:
-
-Would you like me to:
-
-- ✅ Add this `README.md` to your extracted project and give you a download link?
-- 📸 Help you generate preview screenshots from your site for the README?
-
-Let me know!
 
 
 
