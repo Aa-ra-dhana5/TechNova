@@ -51,28 +51,6 @@ Ensure this matches your backend's Render deployment.
 
 ---
 
-## 📁 Folder Structure
-
-TechNova/
-├── client/ # React + Vite frontend
-│ ├── src/
-│ │ ├── componants/ # Reusable components
-│ │ ├── layout/ # Layout & context
-│ │ ├── pages/ # Main pages
-│ │ ├── services/ # API call functions
-│ │ └── main.jsx # Entry point
-│ └── vite.config.js
-│
-├── model/ # Mongoose schemas
-├── routes/ # Express routers
-├── controllers/ # Backend logic
-├── server.js # Express entry
-└── .env # Environment variables
-
-
-
----
-
 ## 🧪 Environment Variables
 
 ### 🔧 `.env` (Backend)
@@ -86,10 +64,10 @@ CLIENT_URL=https://technova-web.onrender.com
 
 In `client/.env.production`:
 
-VITE_API_URL=https://technova-520v.onrender.com
-VITE_USER_API_URL=https://technova-520v.onrender.com
-VITE_PRODUCT_API_URL=https://technova-520v.onrender.com
-VITE_PRODUCT_IMAGE_BASE_URL=https://technova-520v.onrender.com
+- VITE_API_URL=https://technova-520v.onrender.com
+- VITE_USER_API_URL=https://technova-520v.onrender.com
+- VITE_PRODUCT_API_URL=https://technova-520v.onrender.com
+- VITE_PRODUCT_IMAGE_BASE_URL=https://technova-520v.onrender.com
 
 
 > Ensure images (like `/water/xyz.jpg`) are publicly accessible from backend with `express.static('public')` setup.
