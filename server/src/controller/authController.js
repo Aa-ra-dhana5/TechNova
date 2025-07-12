@@ -5,8 +5,10 @@ import crypto from "crypto";
 import { sendVerificationEmail } from "../utils/sendVerificationEmail.js";
 dotenv.config();
 
-const genrateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
+const genrateToken = (user) => {
+  return jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
 };
 
 export const signUp = async (req, res) => {
@@ -49,14 +51,16 @@ export const signUp = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    // console.log("Email found", email);
 
     const user = await User.findOne({ email });
+    // console.log("uer fround from DB", user);
 
     if (!user) {
       console.log("❌ No user found with email:", email);
       return res.status(400).json({
         message: "Invalid email or password",
-        debug: { userFound: false, email }
+        debug: { userFound: false, email },
       });
     }
 
@@ -65,7 +69,7 @@ export const login = async (req, res) => {
       console.log("❌ Password mismatch for:", email);
       return res.status(400).json({
         message: "Invalid email or password",
-        debug: { userFound: true, passwordMatch: false }
+        debug: { userFound: true, passwordMatch: false },
       });
     }
 
@@ -73,21 +77,27 @@ export const login = async (req, res) => {
       console.log("⚠️ Email not verified for:", email);
       return res.status(401).json({
         message: "Please verify your email first",
-        debug: { emailVerified: false }
+        debug: { emailVerified: false },
       });
     }
 
     const token = genrateToken(user._id);
 
     // ✅ Set token as HttpOnly cookie
+    // res.cookie("token", token, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production", // true only in production
+    //   sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    //   maxAge: 24 * 60 * 60 * 1000, // 1 day
+    // });
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // true only in production
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      secure: false, // ⚠️ true only for HTTPS in production
+      sameSite: "Lax", // avoid 'None' unless cross-origin
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
-    console.log("✅ Login successful:", email);
+    // console.log("✅ Login successful:", email);
 
     res.status(200).json({
       success: true,
@@ -98,7 +108,6 @@ export const login = async (req, res) => {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
-
 
 export const verify = async (req, res) => {
   try {
@@ -161,13 +170,19 @@ export const verify = async (req, res) => {
 };
 export const cartUpdate = async (req, res) => {
   try {
-    const userId = req.params.userId;
+    const userId = req.user._id;
     const { cart } = req.body;
 
-    // Replace the whole cart array in DB
-    await User.updateOne({ _id: userId }, { $set: { cart } });
+    const sanitizedCart = cart
+      .filter((item) => item.productId) // ⛔ skip if no productId
+      .map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity || 1,
+      }));
 
-    res.status(200).json({ message: "Cart updated", cart });
+    await User.updateOne({ _id: userId }, { $set: { cart: sanitizedCart } });
+
+    res.status(200).json({ message: "Cart updated", cart: sanitizedCart });
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
@@ -175,10 +190,8 @@ export const cartUpdate = async (req, res) => {
 
 export const getCart = async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId).populate(
-      "cart.productId"
-    );
-
+    const user = await User.findById(req.user._id).populate("cart.productId");
+    // console.log("cart userid find", user);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

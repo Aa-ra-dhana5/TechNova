@@ -6,11 +6,16 @@ import { motion } from "framer-motion";
 
 export default function ProductCard({ product }) {
   const { cartItems, addToCart, removeFromCart, updateQuantity } = useCart();
-  const existingItem = cartItems.find((item) => item._id === product._id);
+  const existingItem = cartItems.find((item) => {
+    const itemId =
+      typeof item.productId === "object" ? item.productId._id : item.productId;
+    return itemId === product._id;
+  });
 
   const handleAdd = (e) => {
     e.preventDefault();
-    addToCart({ ...product, id: product._id, quantity: 1 });
+    addToCart({ productId: product, quantity: 1 }); // ✔ full product object
+
   };
 
   const handleRemove = (e) => {

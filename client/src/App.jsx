@@ -13,15 +13,16 @@ import Footer from "./layout/Footer";
 import ProductDetail from "./componants/ProductDetail ";
 import Cart from "./pages/Cart";
 import { PrivateRoute } from "./route/PrivateRoute";
+import { useAuth } from "./componants/AuthContext";
 
 export default function App() {
+  const { isLoading } = useAuth();
+
   return (
     <Router>
       <Header />
       <Routes>
         <Route path="/home" element={<Home />} />
-
-        {/* Category pages for each product type */}
         <Route path="/products/:category" element={<CategoryPage />} />
         <Route
           path="/products/:category/:productId"
@@ -31,7 +32,6 @@ export default function App() {
             </PrivateRoute>
           }
         />
-        {/* <Route path="/cart" element={<CartPage />} /> */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route
@@ -42,10 +42,7 @@ export default function App() {
             </PrivateRoute>
           }
         />
-
-        {/* Redirect default */}
         <Route path="*" element={<Navigate to="/home" replace />} />
-        {/* <Route path="/search" element={<Search />} /> */}
       </Routes>
       <Footer />
     </Router>

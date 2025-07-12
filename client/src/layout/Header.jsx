@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShoppingCart, LogIn, LogOut, Menu, X } from "lucide-react";
 import { useAuth } from "../componants/AuthContext";
-import { useCart } from "../componants/CartContext"; // ✅ Use CartContext
+import { useCart } from "../componants/CartContext";
 
 export default function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -21,13 +21,12 @@ export default function Header() {
     { name: "Mobiles", slug: "mobile" },
   ];
 
-  // ✅ Calculate total items directly (no useState)
   const totalItems = cartItems.reduce(
     (sum, item) => sum + (item.quantity || 1),
     0
   );
 
-  // Close dropdowns on route change
+  // Auto-close dropdowns on route change
   useEffect(() => {
     setDropdownOpen(false);
     setMobileMenuOpen(false);
@@ -43,7 +42,7 @@ export default function Header() {
           TechNova
         </Link>
 
-        {/* Mobile Toggle */}
+        {/* Mobile Menu Toggle */}
         <button
           className="md:hidden text-white"
           onClick={() => setMobileMenuOpen((prev) => !prev)}
@@ -51,20 +50,20 @@ export default function Header() {
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
 
-        {/* Nav Links */}
+        {/* Navigation Links */}
         <nav
           className={`${
             mobileMenuOpen ? "flex" : "hidden"
           } absolute md:static top-full left-0 right-0 md:flex flex-col md:flex-row bg-black/90 md:bg-transparent md:items-center text-sm font-medium gap-4 md:gap-6 p-4 md:p-0 transition-all duration-300 z-40`}
         >
-          <Link to="/home" className="hover:text-cyan-400 transition-all">
+          <Link to="/home" className="hover:text-cyan-400 transition">
             Home
           </Link>
 
-          {/* Dropdown */}
+          {/* Dropdown for categories */}
           <div className="relative">
             <button
-              className="hover:text-cyan-400 transition-all flex items-center gap-1"
+              className="hover:text-cyan-400 transition flex items-center gap-1"
               onClick={() => setDropdownOpen((prev) => !prev)}
             >
               Products
@@ -95,10 +94,10 @@ export default function Header() {
             )}
           </div>
 
-          {/* Cart */}
+          {/* Cart link */}
           <Link
             to="/cart"
-            className="relative flex items-center gap-1 hover:text-cyan-400 transition-all"
+            className="relative flex items-center gap-1 hover:text-cyan-400 transition"
           >
             <ShoppingCart size={18} />
             Cart
@@ -109,7 +108,7 @@ export default function Header() {
             )}
           </Link>
 
-          {/* Auth Buttons */}
+          {/* Auth buttons */}
           {!isLoggedIn ? (
             <>
               <Link

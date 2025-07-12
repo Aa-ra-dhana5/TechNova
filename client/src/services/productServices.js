@@ -5,26 +5,41 @@ const API_BASE_URL = import.meta.env.VITE_PRODUCT_API_URL;
 /**
  * Fetch products by category.
  */
-export const fetchProductsByCategory = async (category) => {
+export const fetchProductsByCategory = async (
+  category,
+  page,
+  limit,
+  brand,
+  sortOption
+) => {
   if (!category || typeof category !== "string") {
     console.warn(
       "fetchProductsByCategory called with invalid category:",
       category
     );
-    return [];
+    return { data: [] };
   }
 
+  const queryParams = new URLSearchParams();
+  queryParams.append("category", category);
+  if (page) queryParams.append("page", page);
+  if (limit) queryParams.append("limit", limit);
+  if (brand) queryParams.append("brand", brand);
+  if (sortOption) queryParams.append("sort", sortOption);
+
   try {
-    const response = await axios.get(
-      `${API_BASE_URL}/products?category=${encodeURIComponent(category)}`
+    const res = await fetch(
+      `${
+        import.meta.env.VITE_PRODUCT_API_URL
+      }/products?${queryParams.toString()}`
     );
-    return response.data;
+    const result = await res.json();
+
+    // Handle if the backend returns { success, data: [...] }
+    return { data: result.data || [] };
   } catch (error) {
-    console.error(
-      `Error fetching products for category "${category}":`,
-      error.message
-    );
-    return [];
+    console.error("Error fetching products:", error.message);
+    return { data: [] };
   }
 };
 

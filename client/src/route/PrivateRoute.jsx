@@ -1,12 +1,27 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+// // src/route/PrivateRoute.jsx
+// import React from "react";
+// import { Navigate } from "react-router-dom";
+// import { useAuth } from "../componants/AuthContext";
+
+// export const PrivateRoute = ({ children }) => {
+//   const { isLoggedIn } = useAuth();
+
+//   if (isLoggedIn === false) {
+//     return <Navigate to="/login" replace />;
+//   }
+
+//   return children;
+// };
+
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../componants/AuthContext";
 
 export const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
+  const { isLoggedIn, isLoading } = useAuth();
 
-  if (!token) {
-    return <Navigate to="/login" />;
+  if (isLoading) {
+    return null; // or a spinner
   }
-
-  return children;
+  // console.log(isLoggedIn);
+  return isLoggedIn ? children : <Navigate to="/login" replace />;
 };

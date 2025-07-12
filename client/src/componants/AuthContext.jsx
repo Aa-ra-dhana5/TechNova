@@ -1,109 +1,107 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
 import { getUserCart, updateUserCart } from "../services/authServices";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userId, setUserId] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("token"));
   const [cart, setCart] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // ⬇️ Load token and cart on mount
+  // 🔧 Normalize productId to string always
+  const normalizeId = (productId) => {
+    if (typeof productId === "string") return productId;
+    if (typeof productId === "object" && productId?._id) return productId._id;
+    return String(productId);
+  };
+
+  const formatCart = (cartArray) =>
+  cartArray.map((item) => ({
+    productId: item.productId?._id ? item.productId : { _id: item.productId }, // 📌 if populated, keep full object
+    quantity: item.quantity || 1,
+  }));
+
+
+  // ✅ On App Load → Sync cart from server if logged in
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    const guestCart = JSON.parse(localStorage.getItem("cartItems")) || [];
-
-    if (storedToken && storedToken.split(".").length === 3) {
+    const checkLogin = async () => {
       try {
-        const decoded = jwtDecode(storedToken);
-        const id = decoded.userId;
-        setToken(storedToken);
-        setUserId(id);
+        const cartFromServer = await getUserCart(); // uses cookie
+        const formatted = formatCart(cartFromServer || []);
+        setCart(formatted);
         setIsLoggedIn(true);
-
-        getUserCart(id, storedToken).then((userCart) => {
-          const mergedCart = mergeCarts(userCart || [], guestCart);
-          setCart(mergedCart);
-          updateUserCart(id, mergedCart, storedToken);
-          localStorage.removeItem("cartItems");
-        });
-      } catch (error) {
-        console.error("Token decode error:", error);
-        logout();
+        console.log("✅ Logged in with cart:", formatted);
+      } catch (err) {
+        console.log("❌ Not logged in or session expired");
+        setIsLoggedIn(false);
+        const guestCart = JSON.parse(localStorage.getItem("cartItems")) || [];
+        setCart(guestCart);
+      } finally {
+        setIsLoading(false);
       }
-    } else {
-      setCart(guestCart);
-    }
+    };
+
+    checkLogin();
   }, []);
 
-  // ⬇️ LOGIN
-  const login = async (token) => {
-    if (!token || token.split(".").length !== 3) {
-      console.error("Invalid token");
-      return;
-    }
-
-    localStorage.setItem("token", token);
-    setToken(token);
-    setIsLoggedIn(true);
-
+  // ✅ Called after successful login API
+  const handleLogin = async () => {
     try {
-      const decoded = jwtDecode(token);
-      const id = decoded.userId;
-      setUserId(id);
-
       const guestCart = JSON.parse(localStorage.getItem("cartItems")) || [];
-      const userCart = await getUserCart(id, token);
-      const mergedCart = mergeCarts(userCart || [], guestCart);
+      const serverCart = await getUserCart();
 
-      setCart(mergedCart);
-      await updateUserCart(id, mergedCart, token);
+      const merged = mergeCarts(serverCart || [], guestCart);
+      const formatted = formatCart(merged);
+
+      setCart(formatted);
+      await updateUserCart(formatted); // sync to server
       localStorage.removeItem("cartItems");
+      setIsLoggedIn(true);
     } catch (error) {
-      console.error("Login error:", error);
-      logout();
+      console.error("Login sync error:", error);
     }
   };
 
-  // ⬇️ LOGOUT
   const logout = () => {
-    localStorage.removeItem("token");
     setIsLoggedIn(false);
-    setUserId(null);
-    setToken(null);
     setCart([]);
   };
 
-  // ✅ ⬇️ SYNC CART TO SERVER WITH DEBOUNCE
+  // ✅ Debounced Cart Sync
   useEffect(() => {
-    if (isLoggedIn && userId && token) {
-      const timeout = setTimeout(() => {
-        console.log("⬆️ Debounced cart sync:", cart);
-        updateUserCart(userId, cart, token).catch((err) =>
-          console.error("Error syncing cart:", err)
+    if (isLoading) return; // don't sync while loading
+
+    const delay = setTimeout(() => {
+      if (isLoggedIn) {
+        updateUserCart(cart).catch((err) =>
+          console.error("Cart sync failed:", err)
         );
-      }, 500); // debounce delay (adjust if needed)
+      } else {
+        localStorage.setItem("cartItems", JSON.stringify(cart));
+      }
+    }, 500);
 
-      return () => clearTimeout(timeout);
-    } else {
-      // Save guest cart to localStorage
-      localStorage.setItem("cartItems", JSON.stringify(cart));
-    }
-  }, [cart, isLoggedIn, userId, token]);
+    return () => clearTimeout(delay);
+  }, [cart, isLoggedIn, isLoading]);
 
-  // ⬇️ MERGE CARTS
+  // ✅ Merge Cart with normalized IDs
   const mergeCarts = (userCart, guestCart) => {
     const merged = [...userCart];
+
     guestCart.forEach((guestItem) => {
-      const index = merged.findIndex((item) => item._id === guestItem._id);
+      const guestId = normalizeId(guestItem.productId);
+
+      const index = merged.findIndex(
+        (item) => normalizeId(item.productId) === guestId
+      );
+
       if (index !== -1) {
         merged[index].quantity += guestItem.quantity;
       } else {
         merged.push(guestItem);
       }
     });
+
     return merged;
   };
 
@@ -111,12 +109,11 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         isLoggedIn,
-        login,
+        isLoading,
+        handleLogin,
         logout,
         cart,
         setCart,
-        token,
-        userId,
       }}
     >
       {children}

@@ -15,41 +15,59 @@ const initialState = {
 
 // Reducer function
 function cartReducer(state, action) {
+  const normalizeId = (val) =>
+    typeof val === "object" && val !== null ? val._id || val.id : val;
+
   switch (action.type) {
     case "SET_ITEMS":
       return { ...state, items: action.payload };
 
-    case "ADD_ITEM":
-      const existing = state.items.find(
-        (item) => item.id === action.payload.id
-      );
-      if (existing) {
-        return {
-          ...state,
-          items: state.items.map((item) =>
-            item.id === action.payload.id
-              ? { ...item, quantity: item.quantity + action.payload.quantity }
-              : item
-          ),
-        };
-      } else {
-        return {
-          ...state,
-          items: [...state.items, action.payload],
-        };
-      }
+   case "ADD_ITEM":
+  const incomingId =
+    typeof action.payload.productId === "object"
+      ? action.payload.productId._id
+      : action.payload.productId;
+
+  const existing = state.items.find((item) => {
+    const itemId =
+      typeof item.productId === "object" ? item.productId._id : item.productId;
+    return itemId === incomingId;
+  });
+
+  if (existing) {
+    return {
+      ...state,
+      items: state.items.map((item) => {
+        const itemId =
+          typeof item.productId === "object"
+            ? item.productId._id
+            : item.productId;
+        return itemId === incomingId
+          ? { ...item, quantity: item.quantity + (action.payload.quantity || 1) }
+          : item;
+      }),
+    };
+  } else {
+    return {
+      ...state,
+      items: [...state.items, action.payload],
+    };
+  }
+
 
     case "REMOVE_ITEM":
       return {
         ...state,
-        items: state.items.filter((item) => item.id !== action.payload),
+        items: state.items.filter(
+          (item) => normalizeId(item.productId) !== normalizeId(action.payload)
+        ),
       };
 
     case "UPDATE_QUANTITY":
       return {
         ...state,
         items: state.items.map((item) =>
-          item.id === action.payload.id
+          normalizeId(item.productId) === normalizeId(action.payload.productId)
             ? { ...item, quantity: action.payload.quantity }
             : item
         ),
@@ -83,9 +101,10 @@ export function CartProvider({ children }) {
   useEffect(() => {
     if (!isSyncingToAuth.current && cart && Array.isArray(cart)) {
       const formatted = cart.map((item) => ({
-        id: item.id || item._id,
-        ...item,
+        productId: item.productId || item._id || item.id || item.u_id,
+        quantity: item.quantity || 1,
       }));
+
       isSyncingFromAuth.current = true;
       dispatch({ type: "SET_ITEMS", payload: formatted });
     }
@@ -100,9 +119,11 @@ export function CartProvider({ children }) {
       Array.isArray(state.items)
     ) {
       const itemsToAuth = state.items.map((item) => ({
-        _id: item.id || item._id,
-        ...item,
+        productId: item.productId?._id || item.productId || item._id || item.id,
+        quantity: item.quantity,
       }));
+      setCart(itemsToAuth);
+
       isSyncingToAuth.current = true;
       setCart(itemsToAuth);
     }

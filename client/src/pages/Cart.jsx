@@ -19,22 +19,23 @@ export default function Cart() {
   const platformFee = 20;
 
   const handleAdd = (product) => {
-    dispatch({ type: "ADD_ITEM", payload: product });
+    const cleanProduct = {
+      productId: product.productId?._id || product._id || product.id,
+      quantity: 1,
+    };
+    dispatch({ type: "ADD_ITEM", payload: cleanProduct });
   };
 
   const handleRemove = (productId) => {
-    dispatch({ type: "REMOVE_ITEM", payload: productId });
+    dispatch({ type: "REMOVE_ITEM", payload: productId._id || productId });
   };
 
   const handleDecrease = (product) => {
-    if (product.quantity > 1) {
-      dispatch({
-        type: "UPDATE_QUANTITY",
-        payload: { _id: product._id, quantity: product.quantity - 1 },
-      });
-    } else {
-      handleRemove(product._id);
-    }
+    const cleanId = product.productId?._id || product._id || product.id;
+    dispatch({
+      type: "UPDATE_QUANTITY",
+      payload: { productId: cleanId, quantity: product.quantity - 1 },
+    });
   };
 
   const applyCoupon = (code) => {
@@ -72,10 +73,12 @@ export default function Cart() {
   }, [paymentSuccess]);
 
   const subtotal = cartItems.reduce(
-    (acc, item) => acc + item.offer_price * item.quantity,
+    (acc, item) => acc + (item.productId?.offer_price || 0) * item.quantity,
     0
   );
+
   const totalGst = subtotal * 0.18;
+
   const grandTotal = subtotal + totalGst + platformFee - discount;
 
   if (cartItems.length === 0) {
@@ -99,28 +102,29 @@ export default function Cart() {
       {/* Cart Items */}
       {cartItems.map((item) => (
         <div
-          key={item._id}
+          key={item.productId?._id || item._id || item.id}
           className="flex flex-col md:flex-row justify-between items-center gap-4 p-4 border-b"
         >
           <img
             src={
-              item.image_url?.startsWith("http")
-                ? item.image_url
-                : `${import.meta.env.VITE_API_URL}/${item.image_url}`
+              item.productId?.image_url?.startsWith("http")
+                ? item.productId.image_url
+                : `${import.meta.env.VITE_API_URL}/${item.productId?.image_url}`
             }
-            alt={item.name}
+            alt={item.productId?.name}
             className="w-24 h-24 object-contain"
           />
 
           <div className="flex-1">
-            <h3 className="text-lg font-semibold">{item.name}</h3>
+            <h3 className="text-lg font-semibold">{item.productId?.name}</h3>
             <p className="text-green-600 font-medium">
-              ₹{item.offer_price} x {item.quantity}
+              {item.productId?.offer_price} x {item.quantity}
             </p>
             <p className="text-sm text-gray-500 line-through">
-              ₹{item.original_price}
+              {item.productId?.original_price}
             </p>
           </div>
+
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleDecrease(item)}
@@ -136,7 +140,7 @@ export default function Cart() {
               <Plus size={16} className="mx-auto" />
             </button>
             <button
-              onClick={() => handleRemove(item._id)}
+              onClick={() => handleRemove(item.productId)}
               className="w-9 h-9 bg-red-100 hover:bg-red-200 rounded"
             >
               <Trash2 size={16} className="mx-auto text-red-600" />

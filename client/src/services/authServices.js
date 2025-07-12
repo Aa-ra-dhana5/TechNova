@@ -3,7 +3,6 @@ import axios from "axios";
 const API_URL = import.meta.env.VITE_AUTH_API_URL;
 axios.defaults.withCredentials = true;
 
-
 // 🔐 Login using HttpOnly cookies
 export const loginUser = async (email, password) => {
   try {
@@ -38,6 +37,7 @@ export const getUserCart = async () => {
     withCredentials: true,
   });
   return res.data.cart;
+
 };
 
 // 🛒 Update cart
@@ -49,6 +49,7 @@ export const updateUserCart = async (cart) => {
   );
   return res.data.cart;
 };
+
 
 // 👤 Fetch user details (if protected, include credentials)
 export const fetchUserById = async (userId) => {

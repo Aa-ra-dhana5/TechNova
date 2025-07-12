@@ -143,13 +143,13 @@ export default function CheckoutForm({
             </select>
           </div>
 
-          <div className="border-t pt-4 text-sm text-gray-700">
+          {/* <div className="border-t pt-4 text-sm text-gray-700">
             <p>Platform Fee: ₹{platformFee}</p>
             <p>Discount: -₹{discount}</p>
             <p className="font-bold text-lg">
               Total: ₹{getTotalAmount().toLocaleString("en-IN")}
             </p>
-          </div>
+          </div> */}
 
           <div className="flex justify-between">
             <button

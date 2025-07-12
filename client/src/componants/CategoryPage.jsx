@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { fetchProductsByCategory } from "../services/productServices";
 import ProductCard from "./ProductCard";
 import { motion, AnimatePresence } from "framer-motion";
 
-// 👇 Category → Brand Map
 const categoryBrandMap = {
   smartwatch: ["Noise", "Fire-Boltt", "boAt", "Realme", "Samsung"],
   ac: ["LG", "Samsung", "Voltas", "Daikin", "Blue Star"],
@@ -18,24 +17,60 @@ const sortOptions = [
   { value: "rating_high_low", label: "Rating: High to Low" },
 ];
 
+const PAGE_SIZE = 12;
+
 const CategoryPage = () => {
   const { category } = useParams();
   const [products, setProducts] = useState([]);
   const [brands, setBrands] = useState([]);
   const [selectedBrand, setSelectedBrand] = useState("");
   const [sortOption, setSortOption] = useState("");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
+
+  const observer = useRef();
+  const lastProductRef = useCallback(
+    (node) => {
+      if (loading) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage((prevPage) => prevPage + 1);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [loading, hasMore]
+  );
+
+  useEffect(() => {
+    setProducts([]);
+    setPage(1);
+    setHasMore(true);
+  }, [category, selectedBrand, sortOption]);
 
   useEffect(() => {
     const loadProducts = async () => {
       setLoading(true);
-      const data = await fetchProductsByCategory(category);
-      setProducts(data);
-      extractBrands(data);
+      const data = await fetchProductsByCategory(
+        category,
+        page,
+        PAGE_SIZE,
+        selectedBrand,
+        sortOption
+      );
+      // console.log("Fetched products:", data);
+
+
+      if (data.length < PAGE_SIZE) setHasMore(false);
+      setProducts((prev) => [...prev, ...data.data]);
+      extractBrands([...products, ...data.data]);
       setLoading(false);
     };
     loadProducts();
-  }, [category]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, category, selectedBrand, sortOption]);
 
   const extractBrands = (products) => {
     const validBrands = categoryBrandMap[category.toLowerCase()] || [];
@@ -82,7 +117,6 @@ const CategoryPage = () => {
   return (
     <section className="bg-gradient-to-br from-white via-blue-100 to-cyan-50 min-h-screen overflow-hidden  mx-auto  px-4 sm:px-6 lg:px-8 py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Heading */}
         <motion.div
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
@@ -97,13 +131,11 @@ const CategoryPage = () => {
           </p>
         </motion.div>
 
-        {/* Filters */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="flex flex-col md:flex-row justify-between items-center gap-6 mb-10"
         >
-          {/* Brand Filter */}
           <div className="flex flex-wrap gap-2 justify-center md:justify-start">
             <button
               onClick={() => setSelectedBrand("")}
@@ -130,7 +162,6 @@ const CategoryPage = () => {
             ))}
           </div>
 
-          {/* Sort Dropdown */}
           <div className="w-full md:w-64">
             <select
               value={sortOption}
@@ -147,12 +178,7 @@ const CategoryPage = () => {
           </div>
         </motion.div>
 
-        {/* Loader */}
-        {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : filteredAndSortedProducts.length > 0 ? (
+        {filteredAndSortedProducts.length > 0 ? (
           <motion.div
             initial="hidden"
             animate="visible"
@@ -167,19 +193,40 @@ const CategoryPage = () => {
             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8"
           >
             <AnimatePresence>
-              {filteredAndSortedProducts.map((product) => (
-                <motion.div
-                  key={product._id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.4 }}
-                >
-                  <ProductCard product={product} />
-                </motion.div>
-              ))}
+              {filteredAndSortedProducts.map((product, index) => {
+                if (filteredAndSortedProducts.length === index + 1) {
+                  return (
+                    <motion.div
+                      ref={lastProductRef}
+                      key={product._id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <ProductCard product={product} />
+                    </motion.div>
+                  );
+                } else {
+                  return (
+                    <motion.div
+                      key={product._id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <ProductCard product={product} />
+                    </motion.div>
+                  );
+                }
+              })}
             </AnimatePresence>
           </motion.div>
+        ) : loading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
         ) : (
           <p className="text-center text-gray-500 text-lg mt-10">
             No products found.

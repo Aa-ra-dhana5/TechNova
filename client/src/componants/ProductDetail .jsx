@@ -21,7 +21,9 @@ export default function ProductDetail() {
     const loadUser = async () => {
       const userId = localStorage.getItem("userId");
       if (userId) {
-        const res = await fetch(`${import.meta.env.VITE_USER_API_URL}/users/${userId}`);
+        const res = await fetch(
+          `${import.meta.env.VITE_USER_API_URL}/users/${userId}`
+        );
         const user = await res.json();
         if (user?.name) setName(user.name);
       }
@@ -40,7 +42,10 @@ export default function ProductDetail() {
         ? data.image_url
         : `${import.meta.env.VITE_API_URL}/${data.image_url}`;
 
-      const rating_breakdown = generateRatingBreakdown(data.total_ratings, data.rating);
+      const rating_breakdown = generateRatingBreakdown(
+        data.total_ratings,
+        data.rating
+      );
       const feature_ratings = generateFeatureRatings();
 
       setProduct({
@@ -61,10 +66,14 @@ export default function ProductDetail() {
     const fetchSuggestions = async () => {
       if (!product?.category) return;
       const res = await fetch(
-        `${import.meta.env.VITE_PRODUCT_API_URL}/products?category=${product.category}`
+        `${import.meta.env.VITE_PRODUCT_API_URL}/products?category=${
+          product.category
+        }`
       );
       const data = await res.json();
-      setRelatedProducts(data.filter((p) => p._id !== productId).slice(0, 6));
+      setRelatedProducts(
+        (data.data || []).filter((p) => p._id !== productId).slice(0, 6)
+      );
     };
     fetchSuggestions();
   }, [product]);
@@ -79,7 +88,8 @@ export default function ProductDetail() {
   const cartItem = cartItems.find((item) => item.id === product?._id);
   const quantity = cartItem?.quantity || 0;
 
-  if (!product) return <div className="p-10 text-center text-xl">Loading...</div>;
+  if (!product)
+    return <div className="p-10 text-center text-xl">Loading...</div>;
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10 text-gray-800">
@@ -93,21 +103,25 @@ export default function ProductDetail() {
             className="w-full h-[400px] object-contain rounded border"
           />
           <div className="flex gap-4 mt-4">
-            {[product.image_url, ...(product.thumbnails || [])].map((img, idx) => {
-              const imageUrl = img?.startsWith("http")
-                ? img
-                : `${import.meta.env.VITE_API_URL}/${img}`;
-              return (
-                <img
-                  key={idx}
-                  src={imageUrl}
-                  onClick={() => setMainImage(imageUrl)}
-                  className={`w-20 h-20 border rounded cursor-pointer object-cover ${
-                    mainImage === imageUrl ? "border-red-500" : "border-gray-300"
-                  }`}
-                />
-              );
-            })}
+            {[product.image_url, ...(product.thumbnails || [])].map(
+              (img, idx) => {
+                const imageUrl = img?.startsWith("http")
+                  ? img
+                  : `${import.meta.env.VITE_API_URL}/${img}`;
+                return (
+                  <img
+                    key={idx}
+                    src={imageUrl}
+                    onClick={() => setMainImage(imageUrl)}
+                    className={`w-20 h-20 border rounded cursor-pointer object-cover ${
+                      mainImage === imageUrl
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
+                  />
+                );
+              }
+            )}
           </div>
         </div>
 
@@ -185,11 +199,16 @@ export default function ProductDetail() {
 
       {/* SPECIFICATIONS */}
       <div className="mt-10 border rounded-md p-4">
-        <h3 className="text-lg font-semibold mb-4 text-cyan-900">SPECIFICATIONS</h3>
+        <h3 className="text-lg font-semibold mb-4 text-cyan-900">
+          SPECIFICATIONS
+        </h3>
         {product.description.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {product.description.map((desc, i) => (
-              <div key={i} className="bg-white border rounded-md p-3 shadow-sm text-sm">
+              <div
+                key={i}
+                className="bg-white border rounded-md p-3 shadow-sm text-sm"
+              >
                 • {desc.replace(/^'(.*)'$/, "$1")}
               </div>
             ))}
@@ -214,7 +233,9 @@ export default function ProductDetail() {
                     className="bg-green-500 h-2 rounded"
                     style={{
                       width: `${
-                        (product.rating_breakdown[star] / product.total_ratings) * 100
+                        (product.rating_breakdown[star] /
+                          product.total_ratings) *
+                        100
                       }%`,
                     }}
                   ></div>
@@ -227,7 +248,9 @@ export default function ProductDetail() {
           <div className="grid grid-cols-2 gap-4 w-full lg:w-1/2">
             {Object.entries(product.feature_ratings).map(([feature, value]) => (
               <div key={feature} className="text-center">
-                <div className="text-2xl font-semibold text-green-600">{value}</div>
+                <div className="text-2xl font-semibold text-green-600">
+                  {value}
+                </div>
                 <p className="text-sm text-gray-600 mt-1">{feature}</p>
               </div>
             ))}
@@ -248,7 +271,9 @@ export default function ProductDetail() {
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">No reviews yet. Be the first to review!</p>
+              <p className="text-gray-500">
+                No reviews yet. Be the first to review!
+              </p>
             )}
           </div>
           <div className="mt-4 flex flex-col sm:flex-row gap-2">
@@ -280,7 +305,13 @@ export default function ProductDetail() {
               className="border p-4 rounded hover:shadow-lg transition"
             >
               <img
-                src={item.image_url}
+                src={
+                  item.image_url?.startsWith("http")
+                    ? item.image_url
+                    : `${import.meta.env.VITE_PRODUCT_IMAGE_BASE_URL}/${
+                        item.image_url
+                      }`
+                }
                 alt={item.name}
                 className="w-full h-40 object-contain mb-2"
               />

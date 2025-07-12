@@ -9,18 +9,18 @@ const Login = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const { login } = useAuth();
+  const { handleLogin } = useAuth(); // ✅ use handleLogin instead of login
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_AUTH_API_URL}/auth/login`, // ✅ remove /auth again
+        `${import.meta.env.VITE_AUTH_API_URL}/auth/login`,
         {
           method: "POST",
-          credentials: "include", // ✅ needed for HttpOnly cookies
+          credentials: "include", // ✅ allow cookies
           headers: {
             "Content-Type": "application/json",
           },
@@ -30,9 +30,8 @@ const Login = () => {
 
       const data = await response.json();
 
-      // ✅ Updated check: no need to check data.token
       if (response.ok && data.success) {
-        // 🍪 HttpOnly cookie is already set by backend, no need for localStorage
+        await handleLogin(); // ✅ update isLoggedIn and cart context
         navigate("/home");
       } else {
         setError(data.message || "Invalid email or password");
@@ -69,7 +68,7 @@ const Login = () => {
           )}
         </AnimatePresence>
 
-        <form onSubmit={handleLogin} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <input
             type="email"
             placeholder="Email"
