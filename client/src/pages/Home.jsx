@@ -140,7 +140,7 @@ export default function Home() {
           rel="noopener noreferrer"
           className="text-sm text-blue-600 font-medium hover:underline"
         >
-          View
+          View on Flipkart
         </a>
       </div>
     </motion.div>

@@ -62,10 +62,9 @@ const CategoryPage = () => {
       );
       // console.log("Fetched products:", data);
 
-
       if (data.length < PAGE_SIZE) setHasMore(false);
       setProducts((prev) => [...prev, ...data.data]);
-      extractBrands([...products, ...data.data]);
+      setBrands(categoryBrandMap[category.toLowerCase()] || []);
       setLoading(false);
     };
     loadProducts();

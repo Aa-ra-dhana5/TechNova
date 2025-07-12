@@ -103,7 +103,7 @@ const Login = () => {
             href="/signUp"
             className="text-indigo-700 font-semibold hover:underline"
           >
-            Sign up
+            SignUp
           </a>
         </p>
       </motion.div>

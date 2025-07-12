@@ -315,6 +315,7 @@ export default function ProductDetail() {
                 alt={item.name}
                 className="w-full h-40 object-contain mb-2"
               />
+
               <h3 className="text-sm font-semibold truncate">{item.name}</h3>
               <p className="text-red-500 font-bold text-sm">
                 ₹{item.offer_price.toLocaleString()}
