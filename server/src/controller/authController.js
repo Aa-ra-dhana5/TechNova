@@ -92,8 +92,8 @@ export const login = async (req, res) => {
     // });
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false, // ⚠️ true only for HTTPS in production
-      sameSite: "Lax", // avoid 'None' unless cross-origin
+      secure: true, // ⚠️ true only for HTTPS in production
+      sameSite: "None", // avoid 'None' unless cross-origin
       maxAge: 24 * 60 * 60 * 1000,
     });
 
